@@ -9,109 +9,117 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   
   <style>
-    body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); font-family: system-ui, sans-serif; }
     .task-card { transition: all 0.3s ease; }
     .task-card:active { transform: scale(0.97); }
-    .current-day { background-color: #3b82f6; color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+    .current-day { background-color: #3b82f6; color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4); }
     .fab {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
+      bottom: 24px;
+      right: 24px;
+      width: 64px;
+      height: 64px;
       background: linear-gradient(135deg, #3b82f6, #6366f1);
       border-radius: 9999px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+      font-size: 32px;
+      box-shadow: 0 10px 20px -5px rgb(0 0 0 / 0.4);
       z-index: 50;
-    }
-    @media (min-width: 768px) {
-      .fab { display: none; }
     }
   </style>
 </head>
-<body class="min-h-screen text-white pb-24">
-  <div class="max-w-2xl mx-auto p-4 md:p-6">
+<body class="min-h-screen text-white pb-28">
+  <div class="max-w-2xl mx-auto p-4">
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center text-3xl">📅</div>
+        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center text-3xl shadow-lg">📅</div>
         <div>
-          <h1 class="text-3xl md:text-4xl font-bold">Rutine</h1>
-          <p class="text-slate-400 text-sm">Bygg vaner som varer</p>
+          <h1 class="text-4xl font-bold">Rutine</h1>
+          <p class="text-slate-400">Bygg bedre vaner</p>
         </div>
       </div>
-      <div class="text-right">
-        <div id="streak" class="flex items-center gap-1 text-amber-400 text-sm font-medium"></div>
-      </div>
+      <button onclick="showReflectionModal()" class="bg-slate-800 hover:bg-slate-700 px-5 py-3 rounded-2xl flex items-center gap-2 text-sm">
+        <i class="fas fa-pen"></i> Reflekter
+      </button>
     </div>
 
     <!-- Dag Navigasjon -->
-    <div class="flex items-center gap-2 mb-6 bg-slate-800/70 backdrop-blur-xl rounded-3xl p-2 overflow-x-auto">
-      <button onclick="prevDay()" class="p-3 hover:bg-slate-700 rounded-2xl flex-shrink-0"><i class="fas fa-chevron-left"></i></button>
-      <div id="day-nav" class="flex gap-2 flex-1"></div>
-      <button onclick="nextDay()" class="p-3 hover:bg-slate-700 rounded-2xl flex-shrink-0"><i class="fas fa-chevron-right"></i></button>
-    </div>
-
-    <!-- Add Task (desktop) -->
-    <div class="hidden md:block bg-slate-800/80 backdrop-blur-xl rounded-3xl p-5 mb-8 border border-slate-700">
-      <div class="grid grid-cols-12 gap-3" id="add-task-form">
-        <!-- Filled by JS -->
-      </div>
+    <div class="bg-slate-800/70 backdrop-blur-xl rounded-3xl p-3 mb-6 overflow-x-auto">
+      <div class="flex items-center gap-2" id="day-nav"></div>
     </div>
 
     <!-- Tasks -->
     <div id="task-sections" class="space-y-8"></div>
   </div>
 
-  <!-- Floating Action Button (Mobil) -->
-  <div onclick="showAddModal()" class="fab md:hidden">
+  <!-- Floating Add Button -->
+  <div onclick="showAddModal()" class="fab">
     <i class="fas fa-plus"></i>
   </div>
 
-  <!-- Add Task Modal (for mobil) -->
-  <div id="add-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center">
-    <div class="bg-slate-900 w-full max-w-lg md:rounded-3xl md:m-4 rounded-t-3xl p-6">
-      <h3 class="text-xl font-semibold mb-5">Ny oppgave</h3>
-      <input id="modal-task-input" type="text" placeholder="Hva skal du gjøre?" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4">
+  <!-- Add Task Modal -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-end">
+    <div class="bg-slate-900 w-full rounded-t-3xl p-6 max-w-lg mx-auto">
+      <h3 class="text-2xl font-semibold mb-6">Ny oppgave</h3>
       
-      <div class="grid grid-cols-2 gap-4">
+      <input id="modal-task-input" type="text" placeholder="f.eks. Fotball trening" 
+             class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 text-lg mb-4">
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
         <select id="modal-category" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
           <option value="morning">🌅 Morgen</option>
-          <option value="day">☀️ Dag</option>
+          <option value="day" selected>☀️ Dag</option>
           <option value="night">🌙 Kveld</option>
         </select>
         <input id="modal-time" type="time" value="18:00" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
       </div>
 
-      <select id="modal-recurrence" class="w-full mt-4 bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+      <select id="modal-recurrence" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-6">
         <option value="none">Ingen gjentakelse</option>
         <option value="daily">Hver dag</option>
-        <option value="wednesday" selected>Hver onsdag</option>
         <option value="monday">Hver mandag</option>
-        <!-- flere kan legges til -->
+        <option value="tuesday">Hver tirsdag</option>
+        <option value="wednesday" selected>Hver onsdag</option>
+        <option value="thursday">Hver torsdag</option>
+        <option value="friday">Hver fredag</option>
+        <option value="saturday">Hver lørdag</option>
+        <option value="sunday">Hver søndag</option>
       </select>
 
-      <div class="flex gap-3 mt-8">
-        <button onclick="hideAddModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
-        <button onclick="addTaskFromModal()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Legg til</button>
+      <div class="flex gap-3">
+        <button onclick="hideAddModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl font-medium">Avbryt</button>
+        <button onclick="addTaskFromModal()" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold">Legg til oppgave</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reflection Modal -->
+  <div id="reflection-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+    <div class="bg-slate-900 rounded-3xl p-8 max-w-md w-full mx-4">
+      <h3 class="text-2xl font-bold mb-6">Hvordan gikk dagen?</h3>
+      <textarea id="reflection-text" rows="5" class="w-full bg-slate-800 border border-slate-700 rounded-2xl p-5" placeholder="Skriv dine tanker her..."></textarea>
+      <div class="flex gap-3 mt-6">
+        <button onclick="closeReflectionModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
+        <button onclick="saveReflection()" class="flex-1 py-4 bg-emerald-600 rounded-2xl font-semibold">Lagre</button>
       </div>
     </div>
   </div>
 
   <script>
     let currentDate = new Date();
-    let tasks = JSON.parse(localStorage.getItem('rutineTasks')) || {};
-    const days = ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"];
+    let tasks = JSON.parse(localStorage.getItem('rutineTasksFinal')) || {};
+    const days = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
 
-    function getDayKey(date) { return date.toISOString().split('T')[0]; }
+    function getDayKey(date) {
+      return date.toISOString().split('T')[0];
+    }
 
     function saveTasks() {
-      localStorage.setItem('rutineTasks', JSON.stringify(tasks));
+      localStorage.setItem('rutineTasksFinal', JSON.stringify(tasks));
     }
 
     function ensureDay(key) {
@@ -121,18 +129,22 @@
     function renderDayNav() {
       const container = document.getElementById('day-nav');
       container.innerHTML = '';
+      
       for (let i = -4; i <= 4; i++) {
         const d = new Date(currentDate);
         d.setDate(d.getDate() + i);
         const isCurrent = i === 0;
-
+        
         const btn = document.createElement('button');
-        btn.className = `px-4 py-3 rounded-2xl text-center min-w-[70px] text-sm transition-all ${isCurrent ? 'current-day' : 'hover:bg-slate-700'}`;
+        btn.className = `px-5 py-3 rounded-2xl text-center transition-all flex-shrink-0 ${isCurrent ? 'current-day' : 'hover:bg-slate-700'}`;
         btn.innerHTML = `
-          <div class="font-medium">${days[d.getDay()].slice(0,3)}</div>
-          <div class="text-xs opacity-75">${d.getDate()}</div>
+          <div class="text-sm font-medium">${days[d.getDay()].slice(0,3)}</div>
+          <div class="text-xs opacity-75">${d.getDate()}.${(d.getMonth()+1)}</div>
         `;
-        btn.onclick = () => { currentDate = d; renderAll(); };
+        btn.onclick = () => {
+          currentDate = d;
+          renderAll();
+        };
         container.appendChild(btn);
       }
     }
@@ -142,52 +154,59 @@
       ensureDay(dayKey);
 
       let html = '';
-      ['morning','day','night'].forEach(cat => {
-        const icon = cat === 'morning' ? '🌅' : cat === 'day' ? '☀️' : '🌙';
-        const title = cat === 'morning' ? 'Morgen' : cat === 'day' ? 'Dag' : 'Kveld';
-        
+      const sections = [
+        {id: 'morning', icon: '🌅', title: 'Morgen', color: 'from-blue-500 to-cyan-500'},
+        {id: 'day', icon: '☀️', title: 'Midt på dagen', color: 'from-amber-500 to-orange-500'},
+        {id: 'night', icon: '🌙', title: 'Kveld', color: 'from-purple-500 to-pink-500'}
+      ];
+
+      sections.forEach(sec => {
         html += `
           <div>
-            <div class="bg-gradient-to-r ${cat==='morning'?'from-blue-500 to-cyan-500':cat==='day'?'from-amber-500 to-orange-500':'from-purple-500 to-pink-500'} px-5 py-3 rounded-t-3xl">
-              <h3 class="font-bold text-xl">${icon} ${title}</h3>
+            <div class="bg-gradient-to-r ${sec.color} px-6 py-4 rounded-t-3xl">
+              <h3 class="text-xl font-bold">${sec.icon} ${sec.title}</h3>
             </div>
-            <div id="${cat}-tasks" ondrop="drop(event,'${cat}')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-4 min-h-[180px]"></div>
+            <div id="${sec.id}-tasks" ondrop="drop(event, '${sec.id}')" ondragover="allowDrop(event)" 
+                 class="bg-slate-800/70 rounded-b-3xl p-4 min-h-[160px]"></div>
           </div>
         `;
       });
 
       document.getElementById('task-sections').innerHTML = html;
 
-      ['morning','day','night'].forEach(cat => renderCategory(cat));
+      sections.forEach(sec => renderCategory(sec.id));
     }
 
-    function renderCategory(cat) {
-      const container = document.getElementById(cat + '-tasks');
+    function renderCategory(category) {
+      const container = document.getElementById(category + '-tasks');
       const dayKey = getDayKey(currentDate);
-      const filtered = (tasks[dayKey] || []).filter(t => t.category === cat)
-                                             .sort((a,b) => a.time.localeCompare(b.time));
+      const filtered = (tasks[dayKey] || []).filter(t => t.category === category)
+                                             .sort((a, b) => a.time.localeCompare(b.time));
 
-      container.innerHTML = filtered.length === 0 ? 
-        `<p class="text-slate-500 text-center py-8 text-sm">Ingen oppgaver</p>` : '';
+      container.innerHTML = '';
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-slate-500 text-center py-8">Ingen oppgaver her ennå</p>`;
+        return;
+      }
 
       filtered.forEach(task => {
         const div = document.createElement('div');
-        div.className = `task-card bg-slate-900 border border-slate-700 rounded-2xl p-4 mb-3 cursor-grab active:cursor-grabbing`;
+        div.className = `task-card bg-slate-900 border border-slate-700 rounded-2xl p-4 mb-3 cursor-grab`;
         div.draggable = true;
         div.ondragstart = e => e.dataTransfer.setData("text", JSON.stringify({id: task.id}));
 
         div.innerHTML = `
           <div class="flex items-center gap-3">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                   onchange="toggleComplete(${task.id})" class="w-6 h-6 accent-blue-500">
-            <div class="flex-1">
-              <p class="${task.completed ? 'line-through text-slate-400' : 'font-medium'}">${task.text}</p>
-              <div class="text-xs text-slate-400 flex items-center gap-2 mt-1">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete(${task.id})" class="w-6 h-6 accent-blue-500">
+            <div class="flex-1 min-w-0">
+              <p class="${task.completed ? 'line-through text-slate-400' : 'font-medium'} break-words">${task.text}</p>
+              <div class="flex items-center gap-3 text-xs text-slate-400 mt-1">
                 <span>${task.time}</span>
-                ${task.recurrence && task.recurrence !== 'none' ? `<span class="text-amber-400">↻</span>` : ''}
+                ${task.recurrence && task.recurrence !== 'none' ? `<span class="text-amber-400">↻ Gjentas</span>` : ''}
               </div>
             </div>
-            <button onclick="editTask(${task.id}); event.stopImmediatePropagation()" class="text-slate-400 hover:text-white">
+            <button onclick="editTask(${task.id}); event.stopImmediatePropagation()" class="text-slate-400 hover:text-white px-2">
               <i class="fas fa-edit"></i>
             </button>
           </div>
@@ -199,37 +218,41 @@
     function renderAll() {
       renderDayNav();
       renderTasks();
-      updateStreak();
     }
 
-    function addTask(text, category, time, recurrence) {
+    function addTaskFromModal() {
+      const text = document.getElementById('modal-task-input').value.trim();
+      if (!text) {
+        alert("Skriv inn en oppgave!");
+        return;
+      }
+
       const dayKey = getDayKey(currentDate);
       ensureDay(dayKey);
 
       const task = {
         id: Date.now(),
-        text: text || document.getElementById('modal-task-input').value.trim(),
-        category: category || document.getElementById('modal-category').value,
-        time: time || document.getElementById('modal-time').value || "09:00",
-        recurrence: recurrence || document.getElementById('modal-recurrence').value,
+        text: text,
+        category: document.getElementById('modal-category').value,
+        time: document.getElementById('modal-time').value || "09:00",
+        recurrence: document.getElementById('modal-recurrence').value,
         completed: false
       };
 
-      if (!task.text) return alert("Skriv en oppgave");
-      
       tasks[dayKey].push(task);
       saveTasks();
       renderAll();
       hideAddModal();
-    }
-
-    function addTaskFromModal() {
-      addTask();
+      
+      // Clear input
+      document.getElementById('modal-task-input').value = '';
     }
 
     function toggleComplete(id) {
       const dayKey = getDayKey(currentDate);
-      tasks[dayKey] = tasks[dayKey].map(t => t.id === id ? {...t, completed: !t.completed} : t);
+      tasks[dayKey] = tasks[dayKey].map(t => 
+        t.id === id ? {...t, completed: !t.completed} : t
+      );
       saveTasks();
       renderAll();
     }
@@ -239,7 +262,7 @@
       const task = tasks[dayKey].find(t => t.id === id);
       if (!task) return;
 
-      const newText = prompt("Endre oppgave:", task.text);
+      const newText = prompt("Endre oppgaven:", task.text);
       if (newText !== null && newText.trim() !== "") {
         task.text = newText.trim();
         saveTasks();
@@ -248,38 +271,48 @@
     }
 
     function allowDrop(e) { e.preventDefault(); }
-    function drop(e, newCat) {
-      e.preventDefault();
-      const data = JSON.parse(e.dataTransfer.getData("text"));
-      const dayKey = getDayKey(currentDate);
-      tasks[dayKey] = tasks[dayKey].map(t => t.id === data.id ? {...t, category: newCat} : t);
-      saveTasks();
-      renderAll();
-    }
 
-    function prevDay() { currentDate.setDate(currentDate.getDate()-1); renderAll(); }
-    function nextDay() { currentDate.setDate(currentDate.getDate()+1); renderAll(); }
+    function drop(e, newCategory) {
+      e.preventDefault();
+      try {
+        const data = JSON.parse(e.dataTransfer.getData("text"));
+        const dayKey = getDayKey(currentDate);
+        tasks[dayKey] = tasks[dayKey].map(t => 
+          t.id === data.id ? {...t, category: newCategory} : t
+        );
+        saveTasks();
+        renderAll();
+      } catch(e) {}
+    }
 
     function showAddModal() {
       document.getElementById('add-modal').classList.remove('hidden');
-      document.getElementById('modal-task-input').focus();
+      setTimeout(() => document.getElementById('modal-task-input').focus(), 300);
     }
 
     function hideAddModal() {
       document.getElementById('add-modal').classList.add('hidden');
     }
 
-    function updateStreak() {
-      // Simple streak (demo)
-      document.getElementById('streak').innerHTML = `🔥 <span class="text-lg">7</span> dagers streak`;
+    function showReflectionModal() {
+      document.getElementById('reflection-modal').classList.remove('hidden');
+    }
+
+    function closeReflectionModal() {
+      document.getElementById('reflection-modal').classList.add('hidden');
+    }
+
+    function saveReflection() {
+      alert("✅ Refleksjon lagret! Bra jobba.");
+      closeReflectionModal();
     }
 
     function init() {
-      // Demo data
       const todayKey = getDayKey(currentDate);
       if (!tasks[todayKey] || tasks[todayKey].length === 0) {
         tasks[todayKey] = [
-          {id: 1, text: "Fotball trening", category: "day", time: "18:00", recurrence: "wednesday", completed: false}
+          {id: 101, text: "Fotball trening", category: "day", time: "18:00", recurrence: "wednesday", completed: false},
+          {id: 102, text: "Trene armer", category: "morning", time: "07:30", recurrence: "none", completed: true}
         ];
       }
       renderAll();
