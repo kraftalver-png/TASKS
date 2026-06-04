@@ -2,8 +2,8 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rutine • Bygg Bedre Vaner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rutine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -11,84 +11,94 @@
   <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
     .task-card { transition: all 0.3s ease; }
-    .task-card:hover { transform: translateY(-4px); }
-    .current-day { background-color: #3b82f6; color: white; font-weight: 700; }
+    .task-card:active { transform: scale(0.97); }
+    .current-day { background-color: #3b82f6; color: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+      z-index: 50;
+    }
+    @media (min-width: 768px) {
+      .fab { display: none; }
+    }
   </style>
 </head>
-<body class="min-h-screen text-white">
-  <div class="max-w-7xl mx-auto p-6">
+<body class="min-h-screen text-white pb-24">
+  <div class="max-w-2xl mx-auto p-4 md:p-6">
 
     <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
-      <div class="flex items-center gap-4">
-        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center text-4xl">📅</div>
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center text-3xl">📅</div>
         <div>
-          <h1 class="text-5xl font-bold">Rutine</h1>
-          <p class="text-slate-400">Din daglige rytme</p>
+          <h1 class="text-3xl md:text-4xl font-bold">Rutine</h1>
+          <p class="text-slate-400 text-sm">Bygg vaner som varer</p>
         </div>
       </div>
-      <button onclick="showReflectionModal()" class="bg-slate-800 hover:bg-slate-700 px-5 py-3 rounded-2xl flex items-center gap-2">
-        <i class="fas fa-pen"></i> Reflekter
-      </button>
+      <div class="text-right">
+        <div id="streak" class="flex items-center gap-1 text-amber-400 text-sm font-medium"></div>
+      </div>
     </div>
 
     <!-- Dag Navigasjon -->
-    <div class="flex items-center gap-3 mb-8 bg-slate-800/70 backdrop-blur-xl rounded-3xl p-4 overflow-x-auto">
-      <button onclick="prevDay()" class="p-3 hover:bg-slate-700 rounded-2xl"><i class="fas fa-chevron-left"></i></button>
-      
-      <div id="day-nav" class="flex gap-2"></div>
-      
-      <button onclick="nextDay()" class="p-3 hover:bg-slate-700 rounded-2xl"><i class="fas fa-chevron-right"></i></button>
+    <div class="flex items-center gap-2 mb-6 bg-slate-800/70 backdrop-blur-xl rounded-3xl p-2 overflow-x-auto">
+      <button onclick="prevDay()" class="p-3 hover:bg-slate-700 rounded-2xl flex-shrink-0"><i class="fas fa-chevron-left"></i></button>
+      <div id="day-nav" class="flex gap-2 flex-1"></div>
+      <button onclick="nextDay()" class="p-3 hover:bg-slate-700 rounded-2xl flex-shrink-0"><i class="fas fa-chevron-right"></i></button>
     </div>
 
-    <!-- Add Task -->
-    <div class="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 mb-8 border border-slate-700">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-4">
-          <input id="task-input" type="text" placeholder="Ny oppgave (f.eks. Fotball trening)" 
-                 class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4 text-lg">
-        </div>
-        <div class="md:col-span-2">
-          <select id="category-select" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
-            <option value="morning">🌅 Morgen</option>
-            <option value="day">☀️ Dag</option>
-            <option value="night">🌙 Kveld</option>
-          </select>
-        </div>
-        <div class="md:col-span-2">
-          <input id="time-input" type="time" value="18:00" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
-        </div>
-        <div class="md:col-span-2">
-          <select id="recurrence-select" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
-            <option value="none">Ingen gjentakelse</option>
-            <option value="daily">Hver dag</option>
-            <option value="monday">Hver mandag</option>
-            <option value="tuesday">Hver tirsdag</option>
-            <option value="wednesday" selected>Hver onsdag</option>
-            <option value="thursday">Hver torsdag</option>
-            <option value="friday">Hver fredag</option>
-            <option value="saturday">Hver lørdag</option>
-            <option value="sunday">Hver søndag</option>
-          </select>
-        </div>
-        <div class="md:col-span-2">
-          <button onclick="addTask()" class="w-full h-full bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold text-lg">Legg til</button>
-        </div>
+    <!-- Add Task (desktop) -->
+    <div class="hidden md:block bg-slate-800/80 backdrop-blur-xl rounded-3xl p-5 mb-8 border border-slate-700">
+      <div class="grid grid-cols-12 gap-3" id="add-task-form">
+        <!-- Filled by JS -->
       </div>
     </div>
 
     <!-- Tasks -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="task-sections"></div>
+    <div id="task-sections" class="space-y-8"></div>
   </div>
 
-  <!-- Reflection Modal -->
-  <div id="reflection-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-    <div class="bg-slate-900 rounded-3xl p-8 max-w-md w-full">
-      <h3 class="text-2xl font-bold mb-6">Hvordan gikk dagen?</h3>
-      <textarea id="reflection-text" rows="5" class="w-full bg-slate-800 border border-slate-700 rounded-2xl p-5" placeholder="Skriv dine tanker..."></textarea>
-      <div class="flex gap-4 mt-6">
-        <button onclick="closeReflectionModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
-        <button onclick="saveReflection()" class="flex-1 py-4 bg-emerald-600 rounded-2xl font-semibold">Lagre</button>
+  <!-- Floating Action Button (Mobil) -->
+  <div onclick="showAddModal()" class="fab md:hidden">
+    <i class="fas fa-plus"></i>
+  </div>
+
+  <!-- Add Task Modal (for mobil) -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center">
+    <div class="bg-slate-900 w-full max-w-lg md:rounded-3xl md:m-4 rounded-t-3xl p-6">
+      <h3 class="text-xl font-semibold mb-5">Ny oppgave</h3>
+      <input id="modal-task-input" type="text" placeholder="Hva skal du gjøre?" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4">
+      
+      <div class="grid grid-cols-2 gap-4">
+        <select id="modal-category" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+          <option value="morning">🌅 Morgen</option>
+          <option value="day">☀️ Dag</option>
+          <option value="night">🌙 Kveld</option>
+        </select>
+        <input id="modal-time" type="time" value="18:00" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+      </div>
+
+      <select id="modal-recurrence" class="w-full mt-4 bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+        <option value="none">Ingen gjentakelse</option>
+        <option value="daily">Hver dag</option>
+        <option value="wednesday" selected>Hver onsdag</option>
+        <option value="monday">Hver mandag</option>
+        <!-- flere kan legges til -->
+      </select>
+
+      <div class="flex gap-3 mt-8">
+        <button onclick="hideAddModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
+        <button onclick="addTaskFromModal()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Legg til</button>
       </div>
     </div>
   </div>
@@ -96,72 +106,33 @@
   <script>
     let currentDate = new Date();
     let tasks = JSON.parse(localStorage.getItem('rutineTasks')) || {};
-    const days = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
+    const days = ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"];
 
-    function getDayKey(date) {
-      return date.toISOString().split('T')[0];
-    }
+    function getDayKey(date) { return date.toISOString().split('T')[0]; }
 
     function saveTasks() {
       localStorage.setItem('rutineTasks', JSON.stringify(tasks));
     }
 
-    function ensureDay(dayKey) {
-      if (!tasks[dayKey]) tasks[dayKey] = [];
-    }
-
-    function propagateRecurringTasks() {
-      const todayKey = getDayKey(currentDate);
-      ensureDay(todayKey);
-
-      Object.keys(tasks).forEach(dayKey => {
-        tasks[dayKey].forEach(task => {
-          if (!task.recurrence || task.recurrence === "none") return;
-
-          let shouldAdd = false;
-          const taskDate = new Date(dayKey);
-          const weekday = taskDate.getDay(); // 0 = søndag
-
-          if (task.recurrence === "daily") shouldAdd = true;
-          else if (task.recurrence === "monday" && weekday === 1) shouldAdd = true;
-          else if (task.recurrence === "tuesday" && weekday === 2) shouldAdd = true;
-          else if (task.recurrence === "wednesday" && weekday === 3) shouldAdd = true;
-          else if (task.recurrence === "thursday" && weekday === 4) shouldAdd = true;
-          else if (task.recurrence === "friday" && weekday === 5) shouldAdd = true;
-          else if (task.recurrence === "saturday" && weekday === 6) shouldAdd = true;
-          else if (task.recurrence === "sunday" && weekday === 0) shouldAdd = true;
-
-          if (shouldAdd) {
-            const targetKey = getDayKey(currentDate);
-            const alreadyExists = tasks[targetKey].some(t => t.text === task.text && t.recurrence);
-            if (!alreadyExists) {
-              tasks[targetKey].push({...task, id: Date.now() + Math.random()});
-            }
-          }
-        });
-      });
+    function ensureDay(key) {
+      if (!tasks[key]) tasks[key] = [];
     }
 
     function renderDayNav() {
       const container = document.getElementById('day-nav');
       container.innerHTML = '';
-
-      for (let i = -3; i <= 3; i++) {
+      for (let i = -4; i <= 4; i++) {
         const d = new Date(currentDate);
         d.setDate(d.getDate() + i);
-        const key = getDayKey(d);
-        const isToday = i === 0;
+        const isCurrent = i === 0;
 
         const btn = document.createElement('button');
-        btn.className = `px-5 py-3 rounded-2xl text-sm whitespace-nowrap transition ${isToday ? 'current-day' : 'hover:bg-slate-700'}`;
+        btn.className = `px-4 py-3 rounded-2xl text-center min-w-[70px] text-sm transition-all ${isCurrent ? 'current-day' : 'hover:bg-slate-700'}`;
         btn.innerHTML = `
-          <div>${days[d.getDay()]}</div>
-          <div class="text-xs opacity-75">${d.getDate()}.${d.getMonth()+1}</div>
+          <div class="font-medium">${days[d.getDay()].slice(0,3)}</div>
+          <div class="text-xs opacity-75">${d.getDate()}</div>
         `;
-        btn.onclick = () => {
-          currentDate = d;
-          renderAll();
-        };
+        btn.onclick = () => { currentDate = d; renderAll(); };
         container.appendChild(btn);
       }
     }
@@ -170,85 +141,90 @@
       const dayKey = getDayKey(currentDate);
       ensureDay(dayKey);
 
-      const sectionsHTML = `
-        <div class="space-y-8">
+      let html = '';
+      ['morning','day','night'].forEach(cat => {
+        const icon = cat === 'morning' ? '🌅' : cat === 'day' ? '☀️' : '🌙';
+        const title = cat === 'morning' ? 'Morgen' : cat === 'day' ? 'Dag' : 'Kveld';
+        
+        html += `
           <div>
-            <div class="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 rounded-t-3xl"><h3 class="text-2xl font-bold">🌅 Morgen</h3></div>
-            <div id="morning" ondrop="drop(event,'morning')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[280px]"></div>
+            <div class="bg-gradient-to-r ${cat==='morning'?'from-blue-500 to-cyan-500':cat==='day'?'from-amber-500 to-orange-500':'from-purple-500 to-pink-500'} px-5 py-3 rounded-t-3xl">
+              <h3 class="font-bold text-xl">${icon} ${title}</h3>
+            </div>
+            <div id="${cat}-tasks" ondrop="drop(event,'${cat}')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-4 min-h-[180px]"></div>
           </div>
-          <div>
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 rounded-t-3xl"><h3 class="text-2xl font-bold">☀️ Midt på dagen</h3></div>
-            <div id="day" ondrop="drop(event,'day')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[280px]"></div>
-          </div>
-          <div>
-            <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 rounded-t-3xl"><h3 class="text-2xl font-bold">🌙 Kveld</h3></div>
-            <div id="night" ondrop="drop(event,'night')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[280px]"></div>
-          </div>
-        </div>
-      `;
+        `;
+      });
 
-      document.getElementById('task-sections').innerHTML = sectionsHTML;
+      document.getElementById('task-sections').innerHTML = html;
 
       ['morning','day','night'].forEach(cat => renderCategory(cat));
     }
 
-    function renderCategory(category) {
-      const container = document.getElementById(category);
+    function renderCategory(cat) {
+      const container = document.getElementById(cat + '-tasks');
       const dayKey = getDayKey(currentDate);
-      const dayTasks = tasks[dayKey] || [];
-      const filtered = dayTasks.filter(t => t.category === category).sort((a,b) => a.time.localeCompare(b.time));
+      const filtered = (tasks[dayKey] || []).filter(t => t.category === cat)
+                                             .sort((a,b) => a.time.localeCompare(b.time));
 
       container.innerHTML = filtered.length === 0 ? 
-        `<p class="text-slate-500 text-center py-10">Ingen oppgaver her</p>` : '';
+        `<p class="text-slate-500 text-center py-8 text-sm">Ingen oppgaver</p>` : '';
 
       filtered.forEach(task => {
         const div = document.createElement('div');
-        div.className = `task-card bg-slate-900 border border-slate-700 rounded-2xl p-5 mb-3 cursor-move flex gap-4`;
+        div.className = `task-card bg-slate-900 border border-slate-700 rounded-2xl p-4 mb-3 cursor-grab active:cursor-grabbing`;
         div.draggable = true;
         div.ondragstart = e => e.dataTransfer.setData("text", JSON.stringify({id: task.id}));
 
         div.innerHTML = `
-          <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete(${task.id})" class="mt-1 w-6 h-6 accent-blue-500">
-          <div class="flex-1">
-            <p class="${task.completed ? 'line-through text-slate-400' : ''}">${task.text}</p>
-            <div class="flex items-center gap-3 text-sm mt-2">
-              <span class="font-mono">${task.time}</span>
-              ${task.recurrence && task.recurrence !== 'none' ? 
-                `<span class="text-amber-400 text-xs flex items-center gap-1"><i class="fas fa-redo"></i> Gjentas</span>` : ''}
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                   onchange="toggleComplete(${task.id})" class="w-6 h-6 accent-blue-500">
+            <div class="flex-1">
+              <p class="${task.completed ? 'line-through text-slate-400' : 'font-medium'}">${task.text}</p>
+              <div class="text-xs text-slate-400 flex items-center gap-2 mt-1">
+                <span>${task.time}</span>
+                ${task.recurrence && task.recurrence !== 'none' ? `<span class="text-amber-400">↻</span>` : ''}
+              </div>
             </div>
+            <button onclick="editTask(${task.id}); event.stopImmediatePropagation()" class="text-slate-400 hover:text-white">
+              <i class="fas fa-edit"></i>
+            </button>
           </div>
-          <button onclick="deleteTask(${task.id})" class="text-red-400 hover:text-red-500 self-start"><i class="fas fa-trash"></i></button>
         `;
         container.appendChild(div);
       });
     }
 
     function renderAll() {
-      propagateRecurringTasks();
       renderDayNav();
       renderTasks();
+      updateStreak();
     }
 
-    function addTask() {
-      const text = document.getElementById('task-input').value.trim();
-      if (!text) return alert("Skriv inn en oppgave!");
-
+    function addTask(text, category, time, recurrence) {
       const dayKey = getDayKey(currentDate);
       ensureDay(dayKey);
 
       const task = {
         id: Date.now(),
-        text,
-        category: document.getElementById('category-select').value,
-        time: document.getElementById('time-input').value || "09:00",
-        recurrence: document.getElementById('recurrence-select').value,
+        text: text || document.getElementById('modal-task-input').value.trim(),
+        category: category || document.getElementById('modal-category').value,
+        time: time || document.getElementById('modal-time').value || "09:00",
+        recurrence: recurrence || document.getElementById('modal-recurrence').value,
         completed: false
       };
 
+      if (!task.text) return alert("Skriv en oppgave");
+      
       tasks[dayKey].push(task);
       saveTasks();
       renderAll();
-      document.getElementById('task-input').value = '';
+      hideAddModal();
+    }
+
+    function addTaskFromModal() {
+      addTask();
     }
 
     function toggleComplete(id) {
@@ -258,52 +234,51 @@
       renderAll();
     }
 
-    function deleteTask(id) {
-      if (!confirm("Slette oppgaven?")) return;
+    function editTask(id) {
       const dayKey = getDayKey(currentDate);
-      tasks[dayKey] = tasks[dayKey].filter(t => t.id !== id);
-      saveTasks();
-      renderAll();
+      const task = tasks[dayKey].find(t => t.id === id);
+      if (!task) return;
+
+      const newText = prompt("Endre oppgave:", task.text);
+      if (newText !== null && newText.trim() !== "") {
+        task.text = newText.trim();
+        saveTasks();
+        renderAll();
+      }
     }
 
     function allowDrop(e) { e.preventDefault(); }
-    function drop(e, newCategory) {
+    function drop(e, newCat) {
       e.preventDefault();
       const data = JSON.parse(e.dataTransfer.getData("text"));
       const dayKey = getDayKey(currentDate);
-      tasks[dayKey] = tasks[dayKey].map(t => t.id === data.id ? {...t, category: newCategory} : t);
+      tasks[dayKey] = tasks[dayKey].map(t => t.id === data.id ? {...t, category: newCat} : t);
       saveTasks();
       renderAll();
     }
 
-    function prevDay() {
-      currentDate.setDate(currentDate.getDate() - 1);
-      renderAll();
+    function prevDay() { currentDate.setDate(currentDate.getDate()-1); renderAll(); }
+    function nextDay() { currentDate.setDate(currentDate.getDate()+1); renderAll(); }
+
+    function showAddModal() {
+      document.getElementById('add-modal').classList.remove('hidden');
+      document.getElementById('modal-task-input').focus();
     }
 
-    function nextDay() {
-      currentDate.setDate(currentDate.getDate() + 1);
-      renderAll();
+    function hideAddModal() {
+      document.getElementById('add-modal').classList.add('hidden');
     }
 
-    function showReflectionModal() {
-      document.getElementById('reflection-modal').classList.remove('hidden');
-    }
-
-    function closeReflectionModal() {
-      document.getElementById('reflection-modal').classList.add('hidden');
-    }
-
-    function saveReflection() {
-      alert("✅ Refleksjon lagret!");
-      closeReflectionModal();
+    function updateStreak() {
+      // Simple streak (demo)
+      document.getElementById('streak').innerHTML = `🔥 <span class="text-lg">7</span> dagers streak`;
     }
 
     function init() {
       // Demo data
-      if (Object.keys(tasks).length < 1) {
-        const today = getDayKey(currentDate);
-        tasks[today] = [
+      const todayKey = getDayKey(currentDate);
+      if (!tasks[todayKey] || tasks[todayKey].length === 0) {
+        tasks[todayKey] = [
           {id: 1, text: "Fotball trening", category: "day", time: "18:00", recurrence: "wednesday", completed: false}
         ];
       }
