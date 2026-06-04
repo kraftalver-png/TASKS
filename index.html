@@ -9,21 +9,10 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   
   <style>
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%);
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-    .task-card {
-      transition: all 0.3s ease;
-    }
-    .task-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
-    }
-    .tab-active {
-      border-bottom: 4px solid #3b82f6;
-      color: white;
-    }
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
+    .task-card { transition: all 0.3s ease; }
+    .task-card:hover { transform: translateY(-4px); }
+    .current-day { background-color: #3b82f6; color: white; font-weight: 700; }
   </style>
 </head>
 <body class="min-h-screen text-white">
@@ -38,102 +27,68 @@
           <p class="text-slate-400">Din daglige rytme</p>
         </div>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="text-right">
-          <p id="current-date" class="text-lg"></p>
-          <p id="current-time" class="text-3xl font-mono text-blue-400"></p>
-        </div>
-        <button onclick="showReflectionModal()" 
-                class="bg-slate-800 hover:bg-slate-700 px-5 py-3 rounded-2xl flex items-center gap-2">
-          <i class="fas fa-pen"></i>
-          <span>Reflekter</span>
-        </button>
-      </div>
+      <button onclick="showReflectionModal()" class="bg-slate-800 hover:bg-slate-700 px-5 py-3 rounded-2xl flex items-center gap-2">
+        <i class="fas fa-pen"></i> Reflekter
+      </button>
     </div>
 
-    <!-- Tabs -->
-    <div class="flex border-b border-slate-700 mb-8 text-lg">
-      <button onclick="switchTab(0)" id="tab-0" class="tab-active px-8 py-4 font-semibold">I Dag</button>
-      <button onclick="switchTab(1)" id="tab-1" class="px-8 py-4 font-semibold text-slate-400 hover:text-white">Denne Uken</button>
+    <!-- Dag Navigasjon -->
+    <div class="flex items-center gap-3 mb-8 bg-slate-800/70 backdrop-blur-xl rounded-3xl p-4 overflow-x-auto">
+      <button onclick="prevDay()" class="p-3 hover:bg-slate-700 rounded-2xl"><i class="fas fa-chevron-left"></i></button>
+      
+      <div id="day-nav" class="flex gap-2"></div>
+      
+      <button onclick="nextDay()" class="p-3 hover:bg-slate-700 rounded-2xl"><i class="fas fa-chevron-right"></i></button>
     </div>
 
-    <!-- DAG VIEW -->
-    <div id="view-day">
-      <div class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-4">
-          <button onclick="prevDay()" class="p-4 hover:bg-slate-800 rounded-2xl text-2xl"><i class="fas fa-chevron-left"></i></button>
-          <h2 id="selected-day-name" class="text-4xl font-bold">Onsdag</h2>
-          <button onclick="nextDay()" class="p-4 hover:bg-slate-800 rounded-2xl text-2xl"><i class="fas fa-chevron-right"></i></button>
+    <!-- Add Task -->
+    <div class="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 mb-8 border border-slate-700">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-4">
+          <input id="task-input" type="text" placeholder="Ny oppgave (f.eks. Fotball trening)" 
+                 class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4 text-lg">
         </div>
-
-        <div class="flex flex-col items-end">
-          <div class="relative w-32 h-32">
-            <svg class="w-32 h-32" viewBox="0 0 42 42">
-              <circle cx="21" cy="21" r="15" fill="none" stroke="#334155" stroke-width="7"/>
-              <circle id="progress-circle" cx="21" cy="21" r="15" fill="none" stroke="#3b82f6" 
-                      stroke-width="7" stroke-dasharray="94" stroke-dashoffset="0" stroke-linecap="round"/>
-            </svg>
-            <div class="absolute inset-0 flex items-center justify-center text-4xl font-bold" id="progress-text">0%</div>
-          </div>
+        <div class="md:col-span-2">
+          <select id="category-select" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
+            <option value="morning">🌅 Morgen</option>
+            <option value="day">☀️ Dag</option>
+            <option value="night">🌙 Kveld</option>
+          </select>
         </div>
-      </div>
-
-      <!-- Legg til oppgave -->
-      <div class="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 mb-8 border border-slate-700">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div class="md:col-span-5">
-            <input id="task-input" type="text" placeholder="Skriv ny oppgave..." 
-                   class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-blue-500">
-          </div>
-          <div class="md:col-span-2">
-            <select id="category-select" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
-              <option value="morning">🌅 Morgen</option>
-              <option value="day">☀️ Dag</option>
-              <option value="night">🌙 Kveld</option>
-            </select>
-          </div>
-          <div class="md:col-span-2">
-            <input id="time-input" type="time" value="08:00" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
-          </div>
-          <div class="md:col-span-2">
-            <select id="priority-select" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
-              <option value="high">🔴 Høy</option>
-              <option value="medium" selected>🟡 Middels</option>
-              <option value="low">🟢 Lav</option>
-            </select>
-          </div>
-          <div class="md:col-span-1">
-            <button onclick="addTask()" 
-                    class="w-full h-full bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold text-lg">Legg til</button>
-          </div>
+        <div class="md:col-span-2">
+          <input id="time-input" type="time" value="18:00" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
+        </div>
+        <div class="md:col-span-2">
+          <select id="recurrence-select" class="w-full bg-slate-900 border border-slate-600 rounded-2xl px-6 py-4">
+            <option value="none">Ingen gjentakelse</option>
+            <option value="daily">Hver dag</option>
+            <option value="monday">Hver mandag</option>
+            <option value="tuesday">Hver tirsdag</option>
+            <option value="wednesday" selected>Hver onsdag</option>
+            <option value="thursday">Hver torsdag</option>
+            <option value="friday">Hver fredag</option>
+            <option value="saturday">Hver lørdag</option>
+            <option value="sunday">Hver søndag</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <button onclick="addTask()" class="w-full h-full bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold text-lg">Legg til</button>
         </div>
       </div>
-
-      <!-- Oppgaver -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="task-sections"></div>
     </div>
 
-    <!-- UKe VIEW -->
-    <div id="view-week" class="hidden text-center py-20 text-slate-400">
-      <h3 class="text-3xl font-bold mb-4">Denne Uken</h3>
-      <p class="text-lg">Ukeoversikt kommer snart...</p>
-    </div>
-
+    <!-- Tasks -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="task-sections"></div>
   </div>
 
-  <!-- Refleksjon Modal -->
+  <!-- Reflection Modal -->
   <div id="reflection-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-    <div class="bg-slate-900 rounded-3xl p-8 max-w-md w-full mx-4">
-      <h3 class="text-2xl font-bold mb-6">Hvordan gikk dagen i dag?</h3>
-      <textarea id="reflection-text" rows="5" 
-                class="w-full bg-slate-800 border border-slate-700 rounded-2xl p-5 text-lg"
-                placeholder="Hva gikk bra? Hva kan bli bedre?"></textarea>
-      
-      <div class="flex gap-4 mt-8">
-        <button onclick="closeReflectionModal()" 
-                class="flex-1 py-4 rounded-2xl border border-slate-600 hover:bg-slate-800">Avbryt</button>
-        <button onclick="saveReflection()" 
-                class="flex-1 py-4 bg-emerald-600 rounded-2xl font-semibold">Lagre refleksjon</button>
+    <div class="bg-slate-900 rounded-3xl p-8 max-w-md w-full">
+      <h3 class="text-2xl font-bold mb-6">Hvordan gikk dagen?</h3>
+      <textarea id="reflection-text" rows="5" class="w-full bg-slate-800 border border-slate-700 rounded-2xl p-5" placeholder="Skriv dine tanker..."></textarea>
+      <div class="flex gap-4 mt-6">
+        <button onclick="closeReflectionModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
+        <button onclick="saveReflection()" class="flex-1 py-4 bg-emerald-600 rounded-2xl font-semibold">Lagre</button>
       </div>
     </div>
   </div>
@@ -141,8 +96,7 @@
   <script>
     let currentDate = new Date();
     let tasks = JSON.parse(localStorage.getItem('rutineTasks')) || {};
-
-    const daysNorwegian = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
+    const days = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
 
     function getDayKey(date) {
       return date.toISOString().split('T')[0];
@@ -152,112 +106,127 @@
       localStorage.setItem('rutineTasks', JSON.stringify(tasks));
     }
 
-    function ensureDay() {
-      const key = getDayKey(currentDate);
-      if (!tasks[key]) tasks[key] = [];
+    function ensureDay(dayKey) {
+      if (!tasks[dayKey]) tasks[dayKey] = [];
     }
 
-    function renderDay() {
-      ensureDay();
-      const key = getDayKey(currentDate);
-      
-      document.getElementById('selected-day-name').textContent = daysNorwegian[currentDate.getDay()];
+    function propagateRecurringTasks() {
+      const todayKey = getDayKey(currentDate);
+      ensureDay(todayKey);
 
-      const html = `
+      Object.keys(tasks).forEach(dayKey => {
+        tasks[dayKey].forEach(task => {
+          if (!task.recurrence || task.recurrence === "none") return;
+
+          let shouldAdd = false;
+          const taskDate = new Date(dayKey);
+          const weekday = taskDate.getDay(); // 0 = søndag
+
+          if (task.recurrence === "daily") shouldAdd = true;
+          else if (task.recurrence === "monday" && weekday === 1) shouldAdd = true;
+          else if (task.recurrence === "tuesday" && weekday === 2) shouldAdd = true;
+          else if (task.recurrence === "wednesday" && weekday === 3) shouldAdd = true;
+          else if (task.recurrence === "thursday" && weekday === 4) shouldAdd = true;
+          else if (task.recurrence === "friday" && weekday === 5) shouldAdd = true;
+          else if (task.recurrence === "saturday" && weekday === 6) shouldAdd = true;
+          else if (task.recurrence === "sunday" && weekday === 0) shouldAdd = true;
+
+          if (shouldAdd) {
+            const targetKey = getDayKey(currentDate);
+            const alreadyExists = tasks[targetKey].some(t => t.text === task.text && t.recurrence);
+            if (!alreadyExists) {
+              tasks[targetKey].push({...task, id: Date.now() + Math.random()});
+            }
+          }
+        });
+      });
+    }
+
+    function renderDayNav() {
+      const container = document.getElementById('day-nav');
+      container.innerHTML = '';
+
+      for (let i = -3; i <= 3; i++) {
+        const d = new Date(currentDate);
+        d.setDate(d.getDate() + i);
+        const key = getDayKey(d);
+        const isToday = i === 0;
+
+        const btn = document.createElement('button');
+        btn.className = `px-5 py-3 rounded-2xl text-sm whitespace-nowrap transition ${isToday ? 'current-day' : 'hover:bg-slate-700'}`;
+        btn.innerHTML = `
+          <div>${days[d.getDay()]}</div>
+          <div class="text-xs opacity-75">${d.getDate()}.${d.getMonth()+1}</div>
+        `;
+        btn.onclick = () => {
+          currentDate = d;
+          renderAll();
+        };
+        container.appendChild(btn);
+      }
+    }
+
+    function renderTasks() {
+      const dayKey = getDayKey(currentDate);
+      ensureDay(dayKey);
+
+      const sectionsHTML = `
         <div class="space-y-8">
-          <!-- Morgen -->
           <div>
-            <div class="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 rounded-t-3xl">
-              <h3 class="text-2xl font-bold">🌅 Morgen</h3>
-            </div>
-            <div id="morning" ondrop="drop(event, 'morning')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[300px]"></div>
+            <div class="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 rounded-t-3xl"><h3 class="text-2xl font-bold">🌅 Morgen</h3></div>
+            <div id="morning" ondrop="drop(event,'morning')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[280px]"></div>
           </div>
-          
-          <!-- Dag -->
           <div>
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 rounded-t-3xl">
-              <h3 class="text-2xl font-bold">☀️ Midt på dagen</h3>
-            </div>
-            <div id="day" ondrop="drop(event, 'day')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[300px]"></div>
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 rounded-t-3xl"><h3 class="text-2xl font-bold">☀️ Midt på dagen</h3></div>
+            <div id="day" ondrop="drop(event,'day')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[280px]"></div>
           </div>
-          
-          <!-- Kveld -->
           <div>
-            <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 rounded-t-3xl">
-              <h3 class="text-2xl font-bold">🌙 Kveld</h3>
-            </div>
-            <div id="night" ondrop="drop(event, 'night')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[300px]"></div>
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 rounded-t-3xl"><h3 class="text-2xl font-bold">🌙 Kveld</h3></div>
+            <div id="night" ondrop="drop(event,'night')" ondragover="allowDrop(event)" class="bg-slate-800/70 rounded-b-3xl p-6 min-h-[280px]"></div>
           </div>
         </div>
       `;
 
-      document.getElementById('task-sections').innerHTML = html;
+      document.getElementById('task-sections').innerHTML = sectionsHTML;
 
-      renderCategory('morning');
-      renderCategory('day');
-      renderCategory('night');
-      updateProgress();
+      ['morning','day','night'].forEach(cat => renderCategory(cat));
     }
 
     function renderCategory(category) {
       const container = document.getElementById(category);
-      if (!container) return;
-
       const dayKey = getDayKey(currentDate);
       const dayTasks = tasks[dayKey] || [];
-      const filtered = dayTasks.filter(t => t.category === category)
-                             .sort((a, b) => a.time.localeCompare(b.time));
+      const filtered = dayTasks.filter(t => t.category === category).sort((a,b) => a.time.localeCompare(b.time));
 
-      container.innerHTML = '';
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<p class="text-slate-500 text-center py-12">Ingen oppgaver ennå</p>`;
-        return;
-      }
+      container.innerHTML = filtered.length === 0 ? 
+        `<p class="text-slate-500 text-center py-10">Ingen oppgaver her</p>` : '';
 
       filtered.forEach(task => {
         const div = document.createElement('div');
-        div.className = `task-card bg-slate-900 border border-slate-700 rounded-2xl p-5 mb-3 cursor-move`;
+        div.className = `task-card bg-slate-900 border border-slate-700 rounded-2xl p-5 mb-3 cursor-move flex gap-4`;
         div.draggable = true;
-        div.ondragstart = (e) => {
-          e.dataTransfer.setData("text/plain", JSON.stringify({id: task.id, oldCategory: task.category}));
-        };
+        div.ondragstart = e => e.dataTransfer.setData("text", JSON.stringify({id: task.id}));
 
         div.innerHTML = `
-          <div class="flex items-start gap-4">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                   onchange="toggleComplete(${task.id})" class="mt-1.5 w-6 h-6 accent-blue-500">
-            <div class="flex-1">
-              <p class="${task.completed ? 'line-through text-slate-400' : 'font-medium'}">${task.text}</p>
-              <div class="text-sm text-slate-400 mt-1 flex gap-3">
-                <span>${task.time}</span>
-                ${task.priority === 'high' ? '<span class="text-red-400">● Høy prioritet</span>' : ''}
-              </div>
+          <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete(${task.id})" class="mt-1 w-6 h-6 accent-blue-500">
+          <div class="flex-1">
+            <p class="${task.completed ? 'line-through text-slate-400' : ''}">${task.text}</p>
+            <div class="flex items-center gap-3 text-sm mt-2">
+              <span class="font-mono">${task.time}</span>
+              ${task.recurrence && task.recurrence !== 'none' ? 
+                `<span class="text-amber-400 text-xs flex items-center gap-1"><i class="fas fa-redo"></i> Gjentas</span>` : ''}
             </div>
-            <button onclick="deleteTask(${task.id})" class="text-red-400 hover:text-red-500">
-              <i class="fas fa-trash"></i>
-            </button>
           </div>
+          <button onclick="deleteTask(${task.id})" class="text-red-400 hover:text-red-500 self-start"><i class="fas fa-trash"></i></button>
         `;
         container.appendChild(div);
       });
     }
 
-    function updateProgress() {
-      const dayKey = getDayKey(currentDate);
-      const dayTasks = tasks[dayKey] || [];
-      const completed = dayTasks.filter(t => t.completed).length;
-      const percent = dayTasks.length === 0 ? 0 : Math.round((completed / dayTasks.length) * 100);
-
-      document.getElementById('progress-text').textContent = percent + '%';
-      
-      const circle = document.getElementById('progress-circle');
-      const offset = 94 - (94 * percent / 100);
-      circle.setAttribute('stroke-dashoffset', offset);
-
-      if (percent === 100 && dayTasks.length > 0) {
-        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-      }
+    function renderAll() {
+      propagateRecurringTasks();
+      renderDayNav();
+      renderTasks();
     }
 
     function addTask() {
@@ -265,80 +234,56 @@
       if (!text) return alert("Skriv inn en oppgave!");
 
       const dayKey = getDayKey(currentDate);
-      ensureDay();
+      ensureDay(dayKey);
 
       const task = {
         id: Date.now(),
-        text: text,
+        text,
         category: document.getElementById('category-select').value,
         time: document.getElementById('time-input').value || "09:00",
-        priority: document.getElementById('priority-select').value,
+        recurrence: document.getElementById('recurrence-select').value,
         completed: false
       };
 
       tasks[dayKey].push(task);
       saveTasks();
-      renderDay();
+      renderAll();
       document.getElementById('task-input').value = '';
     }
 
     function toggleComplete(id) {
       const dayKey = getDayKey(currentDate);
-      tasks[dayKey] = tasks[dayKey].map(task => 
-        task.id === id ? {...task, completed: !task.completed} : task
-      );
+      tasks[dayKey] = tasks[dayKey].map(t => t.id === id ? {...t, completed: !t.completed} : t);
       saveTasks();
-      renderDay();
+      renderAll();
     }
 
     function deleteTask(id) {
-      if (!confirm("Slette denne oppgaven?")) return;
+      if (!confirm("Slette oppgaven?")) return;
       const dayKey = getDayKey(currentDate);
-      tasks[dayKey] = tasks[dayKey].filter(task => task.id !== id);
+      tasks[dayKey] = tasks[dayKey].filter(t => t.id !== id);
       saveTasks();
-      renderDay();
+      renderAll();
     }
 
-    // Drag & Drop
-    function allowDrop(ev) {
-      ev.preventDefault();
-    }
-
-    function drop(ev, newCategory) {
-      ev.preventDefault();
-      try {
-        const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
-        const dayKey = getDayKey(currentDate);
-        
-        tasks[dayKey] = tasks[dayKey].map(task => {
-          if (task.id === data.id) {
-            task.category = newCategory;
-          }
-          return task;
-        });
-        
-        saveTasks();
-        renderDay();
-      } catch(e) {}
-    }
-
-    function switchTab(n) {
-      document.getElementById('view-day').classList.toggle('hidden', n !== 0);
-      document.getElementById('view-week').classList.toggle('hidden', n !== 1);
-      
-      document.querySelectorAll('[id^="tab-"]').forEach((el, i) => {
-        el.classList.toggle('tab-active', i === n);
-      });
+    function allowDrop(e) { e.preventDefault(); }
+    function drop(e, newCategory) {
+      e.preventDefault();
+      const data = JSON.parse(e.dataTransfer.getData("text"));
+      const dayKey = getDayKey(currentDate);
+      tasks[dayKey] = tasks[dayKey].map(t => t.id === data.id ? {...t, category: newCategory} : t);
+      saveTasks();
+      renderAll();
     }
 
     function prevDay() {
       currentDate.setDate(currentDate.getDate() - 1);
-      renderDay();
+      renderAll();
     }
 
     function nextDay() {
       currentDate.setDate(currentDate.getDate() + 1);
-      renderDay();
+      renderAll();
     }
 
     function showReflectionModal() {
@@ -350,21 +295,19 @@
     }
 
     function saveReflection() {
-      alert("✅ Refleksjon lagret! Bra jobba.");
+      alert("✅ Refleksjon lagret!");
       closeReflectionModal();
     }
 
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('current-time').textContent = now.toLocaleTimeString('no-NO', {hour: '2-digit', minute: '2-digit'});
-      document.getElementById('current-date').textContent = now.toLocaleDateString('no-NO', {weekday: 'long', day: 'numeric', month: 'long'});
-    }
-
-    // Init
     function init() {
-      updateClock();
-      setInterval(updateClock, 20000);
-      renderDay();
+      // Demo data
+      if (Object.keys(tasks).length < 1) {
+        const today = getDayKey(currentDate);
+        tasks[today] = [
+          {id: 1, text: "Fotball trening", category: "day", time: "18:00", recurrence: "wednesday", completed: false}
+        ];
+      }
+      renderAll();
     }
 
     window.onload = init;
