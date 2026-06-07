@@ -10,58 +10,62 @@
   
   <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
-    .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+    .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); }
     .task-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .task-card:hover { transform: translateY(-6px); }
+    .task-card:hover { transform: translateY(-8px); }
     .current-day { background-color: #3b82f6; color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); }
   </style>
 </head>
 <body class="min-h-screen text-white">
 
-  <!-- START / ONBOARDING -->
-  <div id="onboarding-screen" class="min-h-screen flex items-center justify-center p-6 hidden">
+  <!-- ONBOARDING / PROFIL SETUP -->
+  <div id="onboarding-screen" class="min-h-screen flex items-center justify-center p-6">
     <div class="max-w-md w-full glass rounded-3xl p-8">
       <div class="text-center mb-8">
-        <div class="w-24 h-24 mx-auto bg-gradient-to-br from-violet-500 to-blue-500 rounded-3xl flex items-center justify-center text-5xl mb-6">📅</div>
+        <div class="w-28 h-28 mx-auto bg-gradient-to-br from-violet-500 to-blue-500 rounded-3xl flex items-center justify-center text-6xl mb-6 shadow-xl">📅</div>
         <h1 class="text-4xl font-bold mb-2">Velkommen til Rutine</h1>
         <p class="text-slate-400">La oss sette opp profilen din</p>
       </div>
 
       <div class="flex justify-center mb-6">
-        <div onclick="triggerImageUpload()" id="profile-preview" 
-             class="w-28 h-28 bg-slate-700 rounded-3xl flex items-center justify-center text-5xl cursor-pointer hover:scale-105 transition overflow-hidden">
+        <div onclick="triggerImageUpload()" id="onboarding-avatar" 
+             class="w-32 h-32 bg-slate-700 rounded-3xl flex items-center justify-center text-6xl cursor-pointer border-4 border-slate-600 overflow-hidden">
           👤
         </div>
       </div>
       <input type="file" id="profile-image" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
 
-      <input id="user-name" type="text" placeholder="Ditt navn" 
-             class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-center text-lg">
+      <input id="user-name" type="text" placeholder="Ditt navn" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-center text-lg">
+      <input id="user-goal" type="text" placeholder="Hva er ditt store mål?" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-center text-lg">
+      
+      <textarea id="user-motivation" rows="2" placeholder="Hvorfor vil du bli bedre?" 
+                class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 text-center"></textarea>
 
       <button onclick="completeOnboarding()" 
-              class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-semibold text-lg mt-4">
-        Start å bruke Rutine →
+              class="w-full mt-8 bg-gradient-to-r from-blue-500 to-violet-600 py-5 rounded-3xl font-bold text-xl">
+        Start din reise →
       </button>
     </div>
   </div>
 
   <!-- MAIN APP -->
   <div id="main-app" class="hidden">
-    <!-- Header med profil -->
     <div class="max-w-2xl mx-auto p-4">
+
+      <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <div class="flex items-center gap-3">
           <div onclick="showProfileModal()" id="header-avatar" 
-               class="w-11 h-11 bg-slate-700 rounded-2xl flex items-center justify-center text-2xl cursor-pointer overflow-hidden border border-slate-600">
+               class="w-12 h-12 bg-slate-700 rounded-3xl flex items-center justify-center text-3xl cursor-pointer overflow-hidden border-2 border-slate-500">
             👤
           </div>
           <div>
-            <h1 class="text-3xl font-bold">Rutine</h1>
-            <p id="greeting" class="text-slate-400 text-sm">God morgen</p>
+            <h1 class="text-4xl font-bold">Rutine</h1>
+            <p id="greeting" class="text-slate-400">God dag!</p>
           </div>
         </div>
-        <button onclick="showReflectionModal()" class="glass px-5 py-3 rounded-3xl flex items-center gap-2 text-sm">
-          <i class="fas fa-pen"></i> Reflekter
+        <button onclick="showReflectionModal()" class="glass px-6 py-3 rounded-3xl flex items-center gap-2">
+          <i class="fas fa-pen"></i>
         </button>
       </div>
 
@@ -80,30 +84,59 @@
     </div>
   </div>
 
-  <!-- PROFILE MODAL -->
-  <div id="profile-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-    <div class="bg-slate-900 rounded-3xl p-8 max-w-md w-full mx-4">
-      <h3 class="text-2xl font-bold mb-6 text-center">Profil</h3>
+  <!-- Add Task Modal -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-end">
+    <div class="bg-slate-900 w-full rounded-t-3xl p-6">
+      <h3 class="text-2xl font-bold mb-6">Ny oppgave</h3>
+      <input id="modal-task-input" type="text" placeholder="Hva skal du gjøre?" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 text-lg mb-4">
       
-      <div class="flex justify-center mb-6">
-        <div onclick="triggerImageUpload()" id="modal-avatar" 
-             class="w-32 h-32 bg-slate-700 rounded-3xl flex items-center justify-center text-6xl cursor-pointer overflow-hidden">
-          👤
-        </div>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <select id="modal-category" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+          <option value="morning">🌅 Morgen</option>
+          <option value="day" selected>☀️ Dag</option>
+          <option value="night">🌙 Kveld</option>
+        </select>
+        <input id="modal-time" type="time" value="18:00" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
       </div>
 
-      <input id="profile-name" type="text" placeholder="Ditt navn" 
-             class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 text-center mb-6">
+      <select id="modal-recurrence" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-6">
+        <option value="none">Ingen gjentakelse</option>
+        <option value="daily">Hver dag</option>
+        <option value="wednesday" selected>Hver onsdag</option>
+        <option value="monday">Hver mandag</option>
+        <option value="tuesday">Hver tirsdag</option>
+        <option value="thursday">Hver torsdag</option>
+        <option value="friday">Hver fredag</option>
+      </select>
 
       <div class="flex gap-3">
-        <button onclick="closeProfileModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Lukk</button>
-        <button onclick="saveProfile()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Lagre endringer</button>
+        <button onclick="hideAddModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
+        <button onclick="addTaskFromModal()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Legg til</button>
       </div>
     </div>
   </div>
 
-  <!-- Add Modal, Reflection Modal osv. (samme som før) -->
-  <!-- ... (resten av modalene er beholdt fra forrige versjon) ... -->
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+    <div class="bg-slate-900 rounded-3xl p-8 max-w-md w-full mx-4">
+      <h3 class="text-2xl font-bold mb-6 text-center">Din Profil</h3>
+      
+      <div class="flex justify-center mb-6">
+        <div onclick="triggerImageUpload()" id="modal-avatar" class="w-32 h-32 bg-slate-700 rounded-3xl flex items-center justify-center text-6xl cursor-pointer overflow-hidden border-4 border-slate-600">
+          👤
+        </div>
+      </div>
+
+      <input id="profile-name" type="text" placeholder="Navn" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-center">
+      <input id="profile-goal" type="text" placeholder="Ditt store mål" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-center">
+      <textarea id="profile-motivation" rows="3" placeholder="Din motivasjon..." class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4"></textarea>
+
+      <div class="flex gap-3 mt-8">
+        <button onclick="closeProfileModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Lukk</button>
+        <button onclick="saveProfile()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Lagre</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     let currentDate = new Date();
@@ -114,13 +147,11 @@
 
     function getDayKey(date) { return date.toISOString().split('T')[0]; }
 
-    function saveTasks() {
-      localStorage.setItem('rutinePro2025', JSON.stringify(tasks));
-    }
-
+    function saveTasks() { localStorage.setItem('rutinePro2025', JSON.stringify(tasks)); }
     function saveProfile() {
-      const name = document.getElementById('profile-name').value.trim();
-      if (name) userProfile.name = name;
+      userProfile.name = document.getElementById('profile-name').value.trim() || userProfile.name;
+      userProfile.goal = document.getElementById('profile-goal').value.trim();
+      userProfile.motivation = document.getElementById('profile-motivation').value.trim();
       localStorage.setItem('userProfile', JSON.stringify(userProfile));
       updateHeader();
       closeProfileModal();
@@ -131,23 +162,7 @@
       document.getElementById('greeting').textContent = `Hei, ${userProfile.name || 'der'} 👋`;
       
       const avatar = document.getElementById('header-avatar');
-      if (userProfile.avatar) {
-        avatar.innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
-      }
-    }
-
-    function showProfileModal() {
-      if (!userProfile) return;
-      document.getElementById('profile-name').value = userProfile.name || '';
-      const modalAvatar = document.getElementById('modal-avatar');
-      if (userProfile.avatar) {
-        modalAvatar.innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
-      }
-      document.getElementById('profile-modal').classList.remove('hidden');
-    }
-
-    function closeProfileModal() {
-      document.getElementById('profile-modal').classList.add('hidden');
+      if (userProfile.avatar) avatar.innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
     }
 
     function triggerImageUpload() {
@@ -157,40 +172,48 @@
     function handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      
       const reader = new FileReader();
       reader.onload = function(ev) {
         if (!userProfile) userProfile = {};
         userProfile.avatar = ev.target.result;
-        
-        // Oppdater begge avatarene
-        const header = document.getElementById('header-avatar');
-        const modal = document.getElementById('modal-avatar');
-        header.innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
-        modal.innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
+        // Update both avatars
+        document.getElementById('header-avatar').innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
+        document.getElementById('modal-avatar').innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
+        document.getElementById('onboarding-avatar').innerHTML = `<img src="${userProfile.avatar}" class="w-full h-full object-cover">`;
       };
       reader.readAsDataURL(file);
     }
 
     function completeOnboarding() {
       const name = document.getElementById('user-name').value.trim() || "Bruker";
-      
       userProfile = {
         name: name,
+        goal: document.getElementById('user-goal').value.trim(),
+        motivation: document.getElementById('user-motivation').value.trim(),
         avatar: null
       };
-      
       localStorage.setItem('userProfile', JSON.stringify(userProfile));
       
       document.getElementById('onboarding-screen').classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
-      
       updateHeader();
       renderAll();
     }
 
-    // === RESTEN AV APPEN (samme som før) ===
-    function renderDayNav() { /* ... samme kode som tidligere ... */ 
+    function showProfileModal() {
+      if (!userProfile) return;
+      document.getElementById('profile-name').value = userProfile.name || '';
+      document.getElementById('profile-goal').value = userProfile.goal || '';
+      document.getElementById('profile-motivation').value = userProfile.motivation || '';
+      document.getElementById('profile-modal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    // ==================== TASK FUNCTIONS ====================
+    function renderDayNav() {
       const container = document.getElementById('day-nav');
       container.innerHTML = '';
       for (let i = -5; i <= 5; i++) {
@@ -206,7 +229,6 @@
     }
 
     function renderTasks() {
-      // Samme som tidligere versjon
       const dayKey = getDayKey(currentDate);
       if (!tasks[dayKey]) tasks[dayKey] = [];
 
@@ -227,15 +249,40 @@
           </div>`;
       });
       document.getElementById('task-sections').innerHTML = html;
-
       sections.forEach(s => renderCategory(s.id));
     }
 
-    // (Kortversjon - resten av funksjonene er like som tidligere)
-    function renderCategory(cat) { /* ... samme som sist ... */ 
-      // Kopier fra forrige versjon om du vil ha full funksjonalitet
+    function renderCategory(cat) {
       const container = document.getElementById(cat + '-tasks');
-      container.innerHTML = `<p class="text-slate-400 text-center py-10">Ingen oppgaver her ennå</p>`;
+      const dayKey = getDayKey(currentDate);
+      const filtered = (tasks[dayKey] || []).filter(t => t.category === cat).sort((a,b) => a.time.localeCompare(b.time));
+
+      container.innerHTML = filtered.length === 0 ? 
+        `<p class="text-slate-400 text-center py-10">Ingen oppgaver her ennå</p>` : '';
+
+      filtered.forEach(task => {
+        const div = document.createElement('div');
+        div.className = `task-card glass border border-slate-600 rounded-2xl p-5 mb-4 flex gap-4 ${task.important ? 'border-l-4 border-yellow-400' : ''}`;
+        div.draggable = true;
+        div.ondragstart = e => e.dataTransfer.setData("text", JSON.stringify({id: task.id}));
+
+        div.innerHTML = `
+          <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete(${task.id})" class="mt-1 w-6 h-6 accent-blue-500">
+          <div class="flex-1">
+            <p class="${task.completed ? 'line-through text-slate-400' : 'font-medium'}">${task.text}</p>
+            <div class="text-xs text-slate-400 mt-2 flex gap-4">
+              <span>${task.time}</span>
+              ${task.recurrence && task.recurrence !== 'none' ? `<span class="text-amber-400">↻</span>` : ''}
+              ${task.important ? `<span class="text-yellow-400">★ Viktig</span>` : ''}
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <button onclick="toggleImportant(${task.id}); event.stopImmediatePropagation()" class="text-yellow-400 hover:text-yellow-300"><i class="fas fa-star"></i></button>
+            <button onclick="deleteTask(${task.id}); event.stopImmediatePropagation()" class="text-red-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
     }
 
     function renderAll() {
@@ -243,11 +290,74 @@
       renderTasks();
     }
 
-    function showAddModal() { alert("Legg til modal fungerer fortsatt!"); }
-    function hideAddModal() {}
-    function showReflectionModal() { alert("Refleksjon lagret!"); }
+    function addTaskFromModal() {
+      const text = document.getElementById('modal-task-input').value.trim();
+      if (!text) return alert("Skriv inn en oppgave!");
+
+      const dayKey = getDayKey(currentDate);
+      if (!tasks[dayKey]) tasks[dayKey] = [];
+
+      const task = {
+        id: Date.now(),
+        text,
+        category: document.getElementById('modal-category').value,
+        time: document.getElementById('modal-time').value || "09:00",
+        recurrence: document.getElementById('modal-recurrence').value,
+        completed: false,
+        important: false
+      };
+
+      tasks[dayKey].push(task);
+      saveTasks();
+      renderAll();
+      hideAddModal();
+      document.getElementById('modal-task-input').value = '';
+    }
+
+    function toggleComplete(id) {
+      const dayKey = getDayKey(currentDate);
+      tasks[dayKey] = tasks[dayKey].map(t => t.id === id ? {...t, completed: !t.completed} : t);
+      saveTasks();
+      renderAll();
+    }
+
+    function toggleImportant(id) {
+      const dayKey = getDayKey(currentDate);
+      tasks[dayKey] = tasks[dayKey].map(t => t.id === id ? {...t, important: !t.important} : t);
+      saveTasks();
+      renderAll();
+    }
+
+    function deleteTask(id) {
+      if (!confirm("Slette oppgaven?")) return;
+      const dayKey = getDayKey(currentDate);
+      tasks[dayKey] = tasks[dayKey].filter(t => t.id !== id);
+      saveTasks();
+      renderAll();
+    }
+
     function allowDrop(e) { e.preventDefault(); }
-    function drop(e, cat) { alert("Flyttet til " + cat); }
+    function drop(e, newCategory) {
+      e.preventDefault();
+      const data = JSON.parse(e.dataTransfer.getData("text"));
+      const dayKey = getDayKey(currentDate);
+      tasks[dayKey] = tasks[dayKey].map(t => t.id === data.id ? {...t, category: newCategory} : t);
+      saveTasks();
+      renderAll();
+    }
+
+    function showAddModal() {
+      document.getElementById('add-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('modal-task-input').focus(), 100);
+    }
+
+    function hideAddModal() {
+      document.getElementById('add-modal').classList.add('hidden');
+    }
+
+    function showReflectionModal() {
+      alert("✅ Refleksjon lagret! Bra jobba.");
+    }
 
     function init() {
       if (userProfile) {
