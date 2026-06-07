@@ -11,68 +11,72 @@
   <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
     .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); }
-    .task-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .task-card:hover { transform: translateY(-8px); }
+    .task-card { transition: all 0.3s ease; }
+    .task-card:hover { transform: translateY(-4px); }
     .current-day { background-color: #3b82f6; color: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); }
   </style>
 </head>
-<body class="min-h-screen text-white">
+<body class="min-h-screen text-white pb-24">
 
-  <!-- Onboarding (samme som før) -->
-  <div id="onboarding-screen" class="min-h-screen flex items-center justify-center p-6 hidden">
+  <!-- ONBOARDING -->
+  <div id="onboarding" class="min-h-screen flex items-center justify-center p-6">
     <div class="max-w-md w-full glass rounded-3xl p-8 text-center">
-      <div class="w-28 h-28 mx-auto bg-gradient-to-br from-violet-500 to-blue-500 rounded-3xl flex items-center justify-center text-6xl mb-6">📅</div>
+      <div class="w-28 h-28 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center text-6xl mb-6">📅</div>
       <h1 class="text-4xl font-bold mb-2">Velkommen til Rutine</h1>
-      <input id="user-name" type="text" placeholder="Ditt navn" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4">
-      <button onclick="completeOnboarding()" class="w-full bg-blue-600 py-5 rounded-3xl font-bold text-xl">Start nå</button>
+      <p class="text-slate-400 mb-8">La oss komme i gang</p>
+      
+      <input id="onboarding-name" type="text" placeholder="Ditt navn" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-center">
+      
+      <button onclick="finishOnboarding()" class="w-full bg-blue-600 py-5 rounded-3xl font-bold text-xl">Start Rutine</button>
     </div>
   </div>
 
-  <!-- Main App -->
-  <div id="main-app">
+  <!-- MAIN APP -->
+  <div id="main-app" class="hidden">
     <div class="max-w-2xl mx-auto p-4">
 
-      <div class="flex justify-between items-center mb-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-          <div onclick="showProfileModal()" id="header-avatar" class="w-12 h-12 bg-slate-700 rounded-3xl flex items-center justify-center text-3xl cursor-pointer overflow-hidden">👤</div>
+          <div onclick="showProfile()" id="avatar-header" class="w-12 h-12 rounded-3xl overflow-hidden cursor-pointer bg-slate-600 flex items-center justify-center text-3xl">👤</div>
           <div>
             <h1 class="text-4xl font-bold">Rutine</h1>
-            <p id="greeting" class="text-slate-400">God dag!</p>
+            <p id="user-greeting" class="text-slate-400">Hei!</p>
           </div>
         </div>
       </div>
 
-      <!-- Dag navigasjon -->
+      <!-- Day Navigation -->
       <div class="glass rounded-3xl p-3 mb-8 overflow-x-auto">
-        <div class="flex gap-2" id="day-nav"></div>
+        <div id="day-nav" class="flex gap-2"></div>
       </div>
 
       <!-- Tasks -->
-      <div id="task-sections" class="space-y-8"></div>
+      <div id="tasks-container" class="space-y-8"></div>
     </div>
 
-    <!-- Floating + button -->
-    <div onclick="showAddModal()" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-blue-500 to-violet-600 rounded-full flex items-center justify-center text-4xl shadow-2xl z-50">
+    <!-- Floating Add Button -->
+    <div onclick="showAddModal()" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl shadow-2xl z-50">
       <i class="fas fa-plus"></i>
     </div>
   </div>
 
-  <!-- Add Task Modal -->
-  <div id="add-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-end">
+  <!-- ADD MODAL -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-end">
     <div class="bg-slate-900 w-full rounded-t-3xl p-6">
       <h3 class="text-2xl font-bold mb-6">Ny oppgave</h3>
-      <input id="modal-task-input" type="text" placeholder="f.eks. Fotball trening" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4 text-lg">
+      <input id="task-text" type="text" placeholder="Hva skal du gjøre?" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-4">
 
       <div class="grid grid-cols-2 gap-4 mb-4">
-        <select id="modal-category" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+        <select id="task-category" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
           <option value="morning">🌅 Morgen</option>
           <option value="day" selected>☀️ Dag</option>
           <option value="night">🌙 Kveld</option>
         </select>
-        <input id="modal-time" type="time" value="18:00" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
+        <input id="task-time" type="time" value="18:00" class="bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4">
       </div>
 
-      <select id="modal-recurrence" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-6">
+      <select id="task-recurrence" class="w-full bg-slate-800 border border-slate-600 rounded-2xl px-5 py-4 mb-6">
         <option value="none">Kun denne dagen</option>
         <option value="daily">Hver dag</option>
         <option value="monday">Hver mandag</option>
@@ -86,136 +90,39 @@
 
       <div class="flex gap-3">
         <button onclick="hideAddModal()" class="flex-1 py-4 border border-slate-600 rounded-2xl">Avbryt</button>
-        <button onclick="addTaskFromModal()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Legg til</button>
+        <button onclick="addNewTask()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-semibold">Legg til oppgave</button>
       </div>
     </div>
   </div>
 
   <script>
     let currentDate = new Date();
-    let tasks = JSON.parse(localStorage.getItem('rutineFinal')) || {}; // Alle oppgaver lagres her
+    let tasks = JSON.parse(localStorage.getItem('rutineTasks2025')) || {};
     let userProfile = JSON.parse(localStorage.getItem('userProfile')) || null;
 
-    const days = ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"];
-    const weekdayMap = { "sunday":0, "monday":1, "tuesday":2, "wednesday":3, "thursday":4, "friday":5, "saturday":6 };
+    const days = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
+    const weekdayMap = {daily: -1, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6, sunday:0};
 
-    function getDayKey(date) { return date.toISOString().split('T')[0]; }
+    function getDayKey(d) { return d.toISOString().split('T')[0]; }
 
-    function saveTasks() { localStorage.setItem('rutineFinal', JSON.stringify(tasks)); }
-
-    function ensureDay(key) { if (!tasks[key]) tasks[key] = []; }
-
-    // === RECURRENCE LOGIC ===
-    function shouldShowOnDay(task, targetDate) {
-      if (!task.recurrence || task.recurrence === "none") return false;
-      if (task.recurrence === "daily") return true;
-
-      const targetWeekday = targetDate.getDay();
-      return weekdayMap[task.recurrence] === targetWeekday;
+    function saveData() {
+      localStorage.setItem('rutineTasks2025', JSON.stringify(tasks));
     }
 
-    function renderTasks() {
-      const dayKey = getDayKey(currentDate);
-      ensureDay(dayKey);
-
-      const sections = [
-        {id:'morning', icon:'🌅', title:'Morgen', color:'from-blue-500 to-cyan-500'},
-        {id:'day', icon:'☀️', title:'Midt på dagen', color:'from-amber-500 to-orange-500'},
-        {id:'night', icon:'🌙', title:'Kveld', color:'from-purple-500 to-pink-500'}
-      ];
-
-      let html = '';
-      sections.forEach(s => {
-        html += `
-          <div>
-            <div class="bg-gradient-to-r ${s.color} px-6 py-4 rounded-t-3xl">
-              <h3 class="text-xl font-bold">${s.icon} ${s.title}</h3>
-            </div>
-            <div id="${s.id}-tasks" class="glass rounded-b-3xl p-4 min-h-[180px]"></div>
-          </div>`;
-      });
-      document.getElementById('task-sections').innerHTML = html;
-
-      sections.forEach(s => renderCategory(s.id));
+    function finishOnboarding() {
+      const name = document.getElementById('onboarding-name').value.trim() || "Bruker";
+      userProfile = { name: name };
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      
+      document.getElementById('onboarding').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+      initApp();
     }
 
-    function renderCategory(cat) {
-      const container = document.getElementById(cat + '-tasks');
-      const dayKey = getDayKey(currentDate);
-      let visibleTasks = [];
-
-      // One-time tasks for this day
-      visibleTasks = (tasks[dayKey] || []).filter(t => t.category === cat);
-
-      // Recurring tasks
-      Object.keys(tasks).forEach(key => {
-        tasks[key].forEach(task => {
-          if (task.recurrence && task.recurrence !== "none" && task.category === cat) {
-            if (shouldShowOnDay(task, currentDate)) {
-              // Sjekk om den allerede finnes i visibleTasks
-              if (!visibleTasks.some(t => t.text === task.text && t.recurrence)) {
-                visibleTasks.push(task);
-              }
-            }
-          }
-        });
-      });
-
-      container.innerHTML = visibleTasks.length === 0 ? 
-        `<p class="text-slate-400 text-center py-10">Ingen oppgaver her ennå</p>` : '';
-
-      visibleTasks.sort((a,b) => a.time.localeCompare(b.time)).forEach(task => {
-        const div = document.createElement('div');
-        div.className = `task-card glass border border-slate-600 rounded-2xl p-5 mb-4 flex gap-4`;
-        div.innerHTML = `
-          <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete('${dayKey}', ${task.id})" class="mt-1 w-6 h-6 accent-blue-500">
-          <div class="flex-1">
-            <p class="${task.completed ? 'line-through text-slate-400' : 'font-medium'}">${task.text}</p>
-            <div class="text-xs text-slate-400 mt-2 flex gap-4">
-              <span>${task.time}</span>
-              ${task.recurrence && task.recurrence !== 'none' ? `<span class="text-amber-400">↻ ${task.recurrence === 'daily' ? 'Hver dag' : 'Hver ' + task.recurrence}</span>` : ''}
-            </div>
-          </div>
-          <button onclick="deleteTask('${dayKey}', ${task.id})" class="text-red-400"><i class="fas fa-trash"></i></button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function addTaskFromModal() {
-      const text = document.getElementById('modal-task-input').value.trim();
-      if (!text) return alert("Skriv inn en oppgave!");
-
-      const dayKey = getDayKey(currentDate);
-      ensureDay(dayKey);
-
-      const task = {
-        id: Date.now(),
-        text: text,
-        category: document.getElementById('modal-category').value,
-        time: document.getElementById('modal-time').value || "09:00",
-        recurrence: document.getElementById('modal-recurrence').value,
-        completed: false
-      };
-
-      tasks[dayKey].push(task);
-      saveTasks();
-      renderTasks();
-      hideAddModal();
-      document.getElementById('modal-task-input').value = '';
-    }
-
-    function toggleComplete(dayKey, id) {
-      tasks[dayKey] = tasks[dayKey].map(t => t.id === id ? {...t, completed: !t.completed} : t);
-      saveTasks();
-      renderTasks();
-    }
-
-    function deleteTask(dayKey, id) {
-      if (!confirm("Slette oppgaven?")) return;
-      tasks[dayKey] = tasks[dayKey].filter(t => t.id !== id);
-      saveTasks();
-      renderTasks();
+    function initApp() {
+      document.getElementById('user-greeting').textContent = `Hei ${userProfile ? userProfile.name : ''}!`;
+      renderDayNav();
+      renderAllTasks();
     }
 
     function renderDayNav() {
@@ -224,12 +131,123 @@
       for (let i = -5; i <= 5; i++) {
         const d = new Date(currentDate);
         d.setDate(d.getDate() + i);
-        const isCurrent = i === 0;
+        const active = i === 0 ? 'current-day' : 'hover:bg-slate-700';
         const btn = document.createElement('button');
-        btn.className = `px-5 py-3 rounded-2xl text-center flex-shrink-0 transition-all ${isCurrent ? 'current-day' : 'hover:bg-slate-700'}`;
-        btn.innerHTML = `<div class="font-medium">${days[d.getDay()].slice(0,3)}</div><div class="text-xs">${d.getDate()}</div>`;
-        btn.onclick = () => { currentDate = d; renderTasks(); renderDayNav(); };
+        btn.className = `px-5 py-3 rounded-2xl text-center transition-all flex-shrink-0 ${active}`;
+        btn.innerHTML = `<div>${days[d.getDay()].slice(0,3)}</div><div class="text-xs">${d.getDate()}</div>`;
+        btn.onclick = () => {
+          currentDate = d;
+          renderDayNav();
+          renderAllTasks();
+        };
         container.appendChild(btn);
+      }
+    }
+
+    function renderAllTasks() {
+      const dayKey = getDayKey(currentDate);
+      if (!tasks[dayKey]) tasks[dayKey] = [];
+
+      const sections = [
+        {key: 'morning', title: '🌅 Morgen'},
+        {key: 'day', title: '☀️ Midt på dagen'},
+        {key: 'night', title: '🌙 Kveld'}
+      ];
+
+      let html = '';
+      sections.forEach(sec => {
+        html += `
+          <div class="mb-8">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-4 rounded-t-3xl">
+              <h3 class="font-bold text-xl">${sec.title}</h3>
+            </div>
+            <div id="${sec.key}-list" class="glass rounded-b-3xl p-4 min-h-[160px]"></div>
+          </div>`;
+      });
+      document.getElementById('tasks-container').innerHTML = html;
+
+      sections.forEach(sec => renderSection(sec.key));
+    }
+
+    function renderSection(category) {
+      const container = document.getElementById(category + '-list');
+      const dayKey = getDayKey(currentDate);
+      let taskList = [];
+
+      // One-time tasks
+      if (tasks[dayKey]) {
+        taskList = tasks[dayKey].filter(t => t.category === category);
+      }
+
+      // Recurring tasks
+      Object.keys(tasks).forEach(key => {
+        tasks[key].forEach(task => {
+          if (task.recurrence && task.recurrence !== "none" && task.category === category) {
+            const taskDate = new Date(key);
+            const shouldShow = task.recurrence === "daily" || 
+                              (weekdayMap[task.recurrence] === currentDate.getDay());
+            if (shouldShow && !taskList.some(t => t.id === task.id)) {
+              taskList.push(task);
+            }
+          }
+        });
+      });
+
+      container.innerHTML = taskList.length === 0 ? 
+        `<p class="text-slate-400 text-center py-8">Ingen oppgaver</p>` : '';
+
+      taskList.sort((a,b) => a.time.localeCompare(b.time)).forEach(task => {
+        const el = document.createElement('div');
+        el.className = `task-card glass border border-slate-600 rounded-2xl p-4 mb-3 flex items-center gap-3`;
+        el.innerHTML = `
+          <input type="checkbox" ${task.completed ? 'checked' : ''} class="w-6 h-6 accent-blue-500" onchange="toggleComplete('${dayKey}', ${task.id})">
+          <div class="flex-1">
+            <p class="${task.completed ? 'line-through text-slate-400' : ''}">${task.text}</p>
+            <p class="text-xs text-slate-400">${task.time} ${task.recurrence && task.recurrence !== 'none' ? '↻' : ''}</p>
+          </div>
+          <button onclick="deleteTask('${dayKey}', ${task.id})" class="text-red-400 px-2"><i class="fas fa-trash"></i></button>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    function addNewTask() {
+      const text = document.getElementById('task-text').value.trim();
+      if (!text) return alert("Skriv inn en oppgave");
+
+      const dayKey = getDayKey(currentDate);
+      if (!tasks[dayKey]) tasks[dayKey] = [];
+
+      const newTask = {
+        id: Date.now(),
+        text: text,
+        category: document.getElementById('task-category').value,
+        time: document.getElementById('task-time').value,
+        recurrence: document.getElementById('task-recurrence').value,
+        completed: false
+      };
+
+      tasks[dayKey].push(newTask);
+      saveData();
+      hideAddModal();
+      renderAllTasks();
+    }
+
+    function toggleComplete(dayKey, id) {
+      if (tasks[dayKey]) {
+        tasks[dayKey] = tasks[dayKey].map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        saveData();
+        renderAllTasks();
+      }
+    }
+
+    function deleteTask(dayKey, id) {
+      if (confirm("Slette denne oppgaven?")) {
+        if (tasks[dayKey]) {
+          tasks[dayKey] = tasks[dayKey].filter(t => t.id !== id);
+          saveData();
+          renderAllTasks();
+        }
       }
     }
 
@@ -241,12 +259,18 @@
       document.getElementById('add-modal').classList.add('hidden');
     }
 
+    function showProfile() {
+      alert("Profil: " + (userProfile ? userProfile.name : "Ingen profil"));
+    }
+
     function init() {
       if (userProfile) {
-        document.getElementById('onboarding-screen').classList.add('hidden');
+        document.getElementById('onboarding').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        initApp();
+      } else {
+        document.getElementById('onboarding').classList.remove('hidden');
       }
-      renderDayNav();
-      renderTasks();
     }
 
     window.onload = init;
